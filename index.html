@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarGrow Boost - SMM Panel & Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header Nav -->
+        <header>
+            <h1>🚀 StarGrow Boost</h1>
+            <div class="nav-buttons">
+                <button onclick="showTab('order-tab')">Order တင်ရန်</button>
+                <button onclick="showTab('topup-tab')">ငွေဖြည့်ရန် (TopUp)</button>
+                <button onclick="showTab('admin-tab')" class="btn-admin">Admin Login</button>
+            </div>
+        </header>
+
+        <!-- User Balance Display -->
+        <div class="balance-card">
+            <span>လက်ကျန်ငွေ: <strong id="user-balance">0</strong> Ks</span>
+        </div>
+
+        <!-- 1. Order Tab -->
+        <section id="order-tab" class="tab-content active">
+            <div class="card">
+                <h2>Order တင်ရန်</h2>
+                <form id="order-form">
+                    <div class="form-group">
+                        <label>ဝန်ဆောင်မှု (Service) ရွေးချယ်ပါ</label>
+                        <select id="service-select" required>
+                            <option value="">-- Service ရွေးပါ --</option>
+                            <option value="2060" data-price="2060" data-provider-id="2060">Telegram Member (30Day) - 2060 Ks</option>
+                            <option value="3200" data-price="3200" data-provider-id="3200">Telegram Member (90Day) - 3200 Ks</option>
+                            <option value="6450" data-price="6450" data-provider-id="6450">Telegram Member (Lifetime) - 6450 Ks</option>
+                            <option value="280"  data-price="280"  data-provider-id="280">Telegram Reaction - 280 Ks</option>
+                            <option value="2000" data-price="2000" data-provider-id="2000">Tiktok Like (30Day) - 2000 Ks</option>
+                            <option value="2500" data-price="2500" data-provider-id="2500">Tiktok Like (Lifetime) - 2500 Ks</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Link (Target URL)</label>
+                        <input type="url" id="order-link" placeholder="https://..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>အရေအတွက် (Quantity)</label>
+                        <input type="number" id="order-quantity" min="100" max="100000" placeholder="Min: 100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ကျသင့်ငွေ (Total Cost)</label>
+                        <input type="text" id="total-cost" value="0 Ks" readonly>
+                    </div>
+                    <button type="submit" class="btn-submit">Order အတည်ပြုမည်</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 2. Wallet TopUp Tab -->
+        <section id="topup-tab" class="tab-content">
+            <div class="card">
+                <h2>💳 Wallet TopUp (ငွေဖြည့်ရန်)</h2>
+                <div class="payment-info">
+                    <p>အောက်ပါ Payment အကောင့်များသို့ ငွေလွှဲပြောင်းပြီး Transaction ပြုလုပ်ပါ:</p>
+                    <ul>
+                        <li>🔴 <strong>Wave Pay:</strong> 09940391862 (O.M.L)</li>
+                        <li>🔵 <strong>AYA Pay:</strong> 09974234392 (O.M.L)</li>
+                        <li>🟢 <strong>KPay:</strong> 09894828386 (H.M.A)</li>
+                    </ul>
+                </div>
+                <hr style="margin: 15px 0;">
+                <form id="topup-form">
+                    <div class="form-group">
+                        <label>ငွေလွှဲသည့် အမျိုးအစား</label>
+                        <select id="topup-method" required>
+                            <option value="Wave Pay">Wave Pay</option>
+                            <option value="AYA Pay">AYA Pay</option>
+                            <option value="KPay">KPay</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ဖြည့်သွင်းသည့် ပမာဏ (Ks)</label>
+                        <input type="number" id="topup-amount" min="1000" placeholder="ဥပမာ - 5000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>လုပ်ငန်းစဉ်အမှတ် / Transaction ID (နောက်ဆုံး ၆ လုံး)</label>
+                        <input type="text" id="topup-txid" placeholder="e.g. 849201" required>
+                    </div>
+                    <button type="submit" class="btn-submit" style="background:#007bff;">ငွေဖြည့်ရန် တောင်းဆိုမည်</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 3. Admin / Owner Dashboard Tab -->
+        <section id="admin-tab" class="tab-content">
+            <!-- Login Form -->
+            <div class="card" id="admin-login-box">
+                <h2>🔐 Admin / Owner Login</h2>
+                <form id="admin-login-form">
+                    <div class="form-group">
+                        <label>Admin Username</label>
+                        <input type="text" id="admin-user" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Admin Password</label>
+                        <input type="password" id="admin-pass" required>
+                    </div>
+                    <button type="submit" class="btn-submit" style="background:#dc3545;">Login ဝင်မည်</button>
+                </form>
+            </div>
+
+            <!-- Admin Control Panel (Hidden by default) -->
+            <div class="card" id="admin-panel" style="display: none;">
+                <h2>⚙️ Admin Panel Panel Control</h2>
+                <p>Welcome, Owner Administrator!</p>
+                
+                <h3 style="margin-top: 20px;">TopUp Request တောင်းဆိုမှုများ</h3>
+                <table border="1" width="100%" style="margin-top: 10px; border-collapse: collapse; text-align: center;">
+                    <thead>
+                        <tr style="background:#eee;">
+                            <th>Method</th>
+                            <th>Amount</th>
+                            <th>TxID</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topup-request-list">
+                        <!-- Pending requests will load here dynamically -->
+                    </tbody>
+                </table>
+                <button onclick="adminLogout()" class="btn-submit" style="background:#6c757d; margin-top: 20px;">Logout ထွက်မည်</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal Receipt Pop-up -->
+    <div id="receipt-modal" class="modal">
+        <div class="modal-content">
+            <h3>✅ Order တင်ပြီးပါပြီ</h3>
+            <hr>
+            <p><strong>Order ID:</strong> <span id="rec-id">#1001</span></p>
+            <p><strong>Service:</strong> <span id="rec-service">-</span></p>
+            <p><strong>Quantity:</strong> <span id="rec-qty">0</span></p>
+            <p><strong>Link:</strong> <span id="rec-link">-</span></p>
+            <p><strong>ကျသင့်ငွေ:</strong> <span id="rec-cost">0</span> Ks</p>
+            <p><strong>လက်ကျန်ငွေ:</strong> <span id="rec-balance">0</span> Ks</p>
+            <button onclick="closeModal()" class="btn-close">ပိတ်မည်</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+                          </html>
+
+        <!-- 3. Admin / Owner Dashboard Tab -->
+<section id="admin-tab" class="tab-content">
+    <!-- Login Form -->
+    <div class="card" id="admin-login-box">
+        <h2>🔐 Owner / Admin Login Panel</h2>
+        <form id="admin-login-form">
+            <div class="form-group">
+                <label>Admin Email / Username</label>
+                <input type="text" id="admin-user" placeholder="Email သို့မဟုတ် Username" required>
+            </div>
+            <div class="form-group">
+                <label>Admin Password</label>
+                <input type="password" id="admin-pass" placeholder="Password ရိုက်ထည့်ပါ" required>
+            </div>
+            <div class="form-group">
+                <label>Admin Dashboard Security Code</label>
+                <input type="password" id="admin-dash-pass" placeholder="Dashboard Code ရိုက်ထည့်ပါ" required>
+            </div>
+            <button type="submit" class="btn-submit" style="background:#dc3545;">Dashboard သို့ ဝင်မည်</button>
+        </form>
+    </div>
+
+    <!-- Admin Control Panel (Hidden by default) -->
+    <div class="card" id="admin-panel" style="display: none;">
+        <h2>⚙️ StarGrow Boost - Owner Control Panel</h2>
+        <p>Welcome, <strong>Owner (htetmyato709@gmail.com)</strong>!</p>
+        
+        <h3 style="margin-top: 20px;">TopUp Request တောင်းဆိုမှုများ</h3>
+        <table border="1" width="100%" style="margin-top: 10px; border-collapse: collapse; text-align: center;">
+            <thead>
+                <tr style="background:#eee;">
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>TxID</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="topup-request-list">
+                <!-- TopUp တောင်းဆိုမှုများကို ဒီနေရာတွင် ပြပေးပါမည် -->
+            </tbody>
+        </table>
+        <button onclick="adminLogout()" class="btn-submit" style="background:#6c757d; margin-top: 20px;">Logout ထွက်မည်</button>
+    </div>
+</section>
