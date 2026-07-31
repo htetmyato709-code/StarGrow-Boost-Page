@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StarGrow Boost - SMM Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="logo">🌟 StarGrow Boost</div>
+    <div id="nav-links" class="nav-links">
+      <!-- Auth Links/User Info will render via JS -->
+    </div>
+  </nav>
+<div class="container">
+
+    <!-- Auth Section (Login / Register) -->
+    <section id="auth-section" class="card">
+      <div class="auth-toggle">
+        <button id="tab-login-btn" class="active" onclick="switchAuthTab('login')">Login</button>
+        <button id="tab-register-btn" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <h3>အကောင့်ဝင်ရန်</h3>
+        <input type="text" id="login-username" placeholder="Username / Admin" required>
+        <input type="password" id="login-password" placeholder="Password" required>
+        <button type="submit" class="btn-primary">Login</button>
+      </form>
+<!-- Register Form -->
+      <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+        <h3>အကောင့်သစ်ဖွင့်ရန်</h3>
+        <input type="text" id="reg-username" placeholder="Username" required>
+        <input type="password" id="reg-password" placeholder="Password" required>
+        <button type="submit" class="btn-primary">Register</button>
+      </form>
+    </section>
+
+    <!-- User Main Dashboard -->
+    <section id="user-dashboard" class="hidden">
+      <!-- User Info Card -->
+      <div class="card balance-card">
+        <h3>လက်ကျန်ငွေ (Balance): <span id="user-balance">0</span> Ks</h3>
+      </div>
+ <!-- Navigation Tabs -->
+      <div class="tab-menu">
+        <button onclick="showUserTab('new-order')">New Order</button>
+        <button onclick="showUserTab('order-history')">Order History</button>
+        <button onclick="showUserTab('topup')">Wallet TopUp</button>
+      </div>
+
+      <!-- Tab: New Order -->
+      <div id="tab-new-order" class="user-tab">
+        <div class="card">
+          <h3>📌 Order တင်ရန်</h3>
+          <form onsubmit="placeOrder(event)">
+            <label>Service ရွေးချယ်ပါ:</label>
+            <select id="order-service-select" onchange="calculatePrice()" required>
+              <option value="">-- Service ရွေးပါ --</option>
+            </select>
+<div id="service-details" class="info-box hidden">
+              <p><b>Min/Max:</b> <span id="srv-min">0</span> - <span id="srv-max">0</span></p>
+              <p><b>Wait Time:</b> <span id="srv-wait">-</span></p>
+              <p><b>Note:</b> <span id="srv-note">-</span></p>
+            </div>
+
+            <label>Quantity (အရေအတွက်):</label>
+            <input type="number" id="order-quantity" oninput="calculatePrice()" placeholder="100" required>
+
+            <label>Link (Social Media Link):</label>
+            <input type="url" id="order-link" placeholder="https://..." required>
+
+            <div class="price-summary">
+              <p>ကျသင့်ငွေ: <span id="order-total-price">0</span> Ks</p>
+            </div>
+
+            <button type="submit" class="btn-success">Order တင်မည်</button>
+          </form>
+        </div>
+      </div>
+  <!-- Tab: Order History -->
+      <div id="tab-order-history" class="user-tab hidden">
+        <div class="card">
+          <h3>📜 Order မှတ်တမ်းများ</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Service</th>
+                <th>Quantity</th>
+                <th>Link</th>
+                <th>ကျသင့်ငွေ</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="user-orders-table"></tbody>
+          </table>
+        </div>
+      </div>
+<!-- Tab: TopUp -->
+      <div id="tab-topup" class="user-tab hidden">
+        <div class="card">
+          <h3>💳 ငွေဖြည့်ရန် ငွေပေးချေမှုအကောင့်များ</h3>
+          <ul>
+            <li>Wave Pay: <b>09940391862</b> (O.M.L)</li>
+            <li>Aya Pay: <b>09974234392</b> (O.M.L)</li>
+            <li>K Pay: <b>09894828386</b> (H.M.A)</li>
+          </ul>
+          <hr>
+          <h4>ငွေလွှဲပြောင်းမှု အတည်ပြုလွှာ ပို့ရန်</h4>
+          <form onsubmit="submitTopup(event)">
+            <select id="topup-method" required>
+              <option value="Wave Pay">Wave Pay</option>
+              <option value="Aya Pay">Aya Pay</option>
+              <option value="K Pay">K Pay</option>
+            </select>
+            <input type="number" id="topup-amount" placeholder="ဖြည့်သွင်းသည့် ပမာဏ (Ks)" required>
+            <input type="text" id="topup-trx" placeholder="လုပ်ဆောင်ချက် အမှတ် (နောက်ဆုံး ၆ လုံး)" required>
+            <button type="submit" class="btn-primary">TopUp တောင်းဆိုမည်</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  <!-- Order Success Modal (Screen ပေါ်တွင် တိုက်ရိုက်ပြမည့် Popup) -->
+    <div id="order-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>✅ Order တင်ပြီးပါပြီ</h3>
+        <hr>
+        <p><b>Order Id:</b> <span id="m-order-id"></span></p>
+        <p><b>Service:</b> <span id="m-service"></span></p>
+        <p><b>Quantity:</b> <span id="m-quantity"></span></p>
+        <p><b>Link:</b> <span id="m-link"></span></p>
+        <p><b>ကျသင့်ငွေ:</b> <span id="m-charge"></span> Ks</p>
+        <p><b>လက်ကျန်ငွေ:</b> <span id="m-balance"></span> Ks</p>
+        <button onclick="closeModal()" class="btn-primary">ပိတ်မည်</button>
+      </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <section id="admin-dashboard" class="hidden">
+      <h2>⚙️ Admin Control Panel</h2>
+      <div class="tab-menu">
+        <button onclick="showAdminTab('admin-stats')">A-12 Stats</button>
+        <button onclick="showAdminTab('admin-services')">A-4 Services/Add ID</button>
+        <button onclick="showAdminTab('admin-orders')">A-5 Orders History</button>
+        <button onclick="showAdminTab('admin-topups')">A-7 Payment Requests</button>
+      </div>
+<!-- Admin Tab: Stats -->
+      <div id="tab-admin-stats" class="admin-tab">
+        <div class="stats-grid">
+          <div class="card">
+            <h4>စုစုပေါင်း Orders</h4>
+            <h2 id="stat-total-orders">0</h2>
+          </div>
+          <div class="card">
+            <h4>အများဆုံး မှာယူသည့် Service</h4>
+            <h3 id="stat-top-service">-</h3>
+          </div>
+        </div>
+      </div
+  <!-- Admin Tab: Services Manager -->
+      <div id="tab-admin-services" class="admin-tab hidden">
+        <div class="card">
+          <h3>A-10/11 - Add / Edit Service</h3>
+          <form onsubmit="saveService(event)">
+            <input type="text" id="admin-srv-name" placeholder="Service Name" required>
+            <input type="number" id="admin-srv-rate" placeholder="Rate per 1000 (Ks)" required>
+            <input type="number" id="admin-srv-min" placeholder="Min Qty" value="100" required>
+            <input type="number" id="admin-srv-max" placeholder="Max Qty" value="100000" required>
+            <input type="number" id="admin-srv-main-id" placeholder="Main Provider Service ID (Auto မလုပ်လိုပါက ဘာမှမထည့်ပါနှင့်)">
+            <input type="text" id="admin-srv-wait" placeholder="Wait Time (e.g. 1:54H)">
+            <textarea id="admin-srv-note" placeholder="Note (e.g. Quality ရှယ်)"></textarea>
+            <button type="submit" class="btn-success">Save Service</button>
+          </form>
+        </div>
+        <div class="card">
+          <h3>Existing Services</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Rate (1000)</th>
+                <th>Main Provider ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-services-table"></tbody>
+          </table>
+        </div>
+      </div>
+  <!-- Admin Tab: Payment Requests -->
+      <div id="tab-admin-topups" class="admin-tab hidden">
+        <div class="card">
+          <h3>A-7 Payment Requests Approval</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Trx Digits</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-topups-table"></tbody>
+          </table>
+        </div>
+      </div>
+<!-- Admin Tab: Orders -->
+      <div id="tab-admin-orders" class="admin-tab hidden">
+        <div class="card">
+          <h3>A-5 All Orders (Auto / Manual Status)</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Service</th>
+                <th>Qty</th>
+                <th>Is Auto?</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="admin-all-orders-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html
+
